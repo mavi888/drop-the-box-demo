@@ -1,70 +1,197 @@
-# Getting Started with Create React App
+# Drop The Box Demo
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a demo for the service Amazon Location Service.
 
-## Available Scripts
+This demo is part of a talk - watch the talk to understand each part of the demo.
 
-In the project directory, you can run:
+## Notes
 
-### `yarn start`
+When you download this files it containes the completed project. You just need it initalize your own Amplify project and create the Amazon Location services in your account.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Steps for creating this demo
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+If you want to create this demo from scratch these are the steps you need to follow.
 
-### `yarn test`
+### Initializing the demo
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Create the react app
 
-### `yarn build`
+```
+npx create-react-app drop-the-box-demo
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Make sure that you have Amplify configured in your computer. If not follow the instructions in the documentation.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+https://docs.amplify.aws/start/getting-started/installation/q/integration/react
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. Install bootstrap in your project
 
-### `yarn eject`
+```
+npm install bootstrap
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+4. Initialize the react app.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+amplify init
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+5. Add authentication and push the changes to the cloud
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```
+amplify add auth
+amplify push
+```
 
-## Learn More
+6. Change the main app page to one using authentication
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+cp base/App-01.js src/App.js
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+7. Start the application, create an account and see that everything is working
 
-### Code Splitting
+```
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+_Expected result_
+![screenshot of how it should look](/images/image01.png)
 
-### Analyzing the Bundle Size
+### Adding maps
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Now you need to go into your AWS account and create a new map in the Amazon Location service.
 
-### Making a Progressive Web App
+2. Install the dependencies
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+npm install aws-sdk
+npm install @aws-amplify/core
+```
 
-### Advanced Configuration
+For the map drawing libraries we need to install an older version
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+npm install mapbox-gl@1.0.0
+npm install react-map-gl@5.2.11
+```
 
-### Deployment
+3. Give permissions to your Amplify application to access maps
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
+amplify console auth
+```
 
-### `yarn build` fails to minify
+And select Identity Pool, check the name of the auth role and add this inline policy to the role. Replace the information with your account information.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "geo:GetMap*",
+            "Resource": "arn:aws:geo:<REGION>:<ACCOUNTNUMBER>:map/<NAMEOFMAP>"
+        }
+    ]
+}
+```
+
+4. Create the client code. Make sure that you change the MapName to yours.
+
+```
+cp base/App-02.js src/App.js
+cp base/App-02.css src/App.css
+cp base/index-02.html public/index.html
+```
+
+### Adding search capabilities
+
+1. Create in the Amazon Location Service a place index.
+
+2. Modify the auth role for the amplify application by adding this permission.
+
+```
+{
+    "Sid": "VisualEditor1",
+    "Effect": "Allow",
+    "Action": "geo:SearchPlaceIndexForText",
+    "Resource": "arn:aws:geo:<REGION>:<ACCOUNTNUMBER>:place-index/<INDEXNAME>"
+}
+```
+
+3. Add the client code. Make sure that you change the MapName and IndexName to yours.
+
+```
+cp base/App-03.js src/App.js
+cp base/Pin-03.js src/Pin.js
+```
+
+### Adding a tracker
+
+1. Create a new tracker in the Amazon Location Service.
+
+2. Modify the auth role for the Amplify application by adding this permission.
+
+```
+ {
+    "Sid": "VisualEditor3",
+    "Effect": "Allow",
+    "Action": "geo:GetDevicePositionHistory",
+    "Resource": "arn:aws:geo:<REGION>:<ACCOUNTNUMBER>:tracker/<TRACKERNAME>"
+}
+```
+
+3. Modify the client code to show the device real time in the map. Make sure that you change the MapName, IndexName, TrackerName and DeviceId to yours.
+
+```
+cp base/App-04.js src/App.js
+cp base/useInterval.js src/useInterval.js
+```
+
+4. Now you need to send some dummy data so you can see the tracker in action. Run the script:
+
+```
+./send-new-locations.sh <TRACKERNAME> <DEVICENAME>
+```
+
+This script will send locations every 30 seconds to the location service, simulating your device.
+
+5. Now you can visualize this by pressing the button track in the web app. And you will see new red dots appearing in the screen every 30 seconds.
+
+Expected results:
+
+_Expected result_
+![screenshot of how it should look](/images/image02.png)
+
+### Geofencing and notifications
+
+1. Go to the Amazon Location Service and add a new geofence.
+
+Upload the script /script/geofence.json.
+
+There you will find a geofence that is in the line where the tracker will be moving.
+
+2. Connect the tracker to the geofence in the Amazon Location Service. So now everytime the tracker enters or exit the geofence a message will be send to EventBridge.
+
+3. Create a SNS topic, that will send you an email. Confirm the subscription to the topic.
+
+4. Go to EventBridge and create a new rule with a custom pattern.
+
+```
+{
+  "source": ["aws.geo"],
+  "detail-type": ["Location Geofence Event"],
+  "detail": {
+    "EventType": ["ENTER"],
+    "GeofenceId": ["<YOUR GEOFENCE NAME"]
+  }
+}
+```
+
+And put as a target that SNS topic.
+
+5. Restart the script that sends tracker locations so it will go over the geofence (that is around Cairo)
+
+6. Wait for a while and after the tracker has gone over Cairo you will recieve an email.

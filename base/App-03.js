@@ -10,8 +10,6 @@ import { Signer } from "@aws-amplify/core";
 import Location from "aws-sdk/clients/location";
 
 import Pin from './Pin'
-import useInterval from './useInterval'
-
 
 import ReactMapGL, {Marker,
   NavigationControl
@@ -23,8 +21,6 @@ import awsconfig from './aws-exports';
 
 const mapName = "FooBarMap"; // HERE IT GOES THE NAME OF YOUR MAP
 const indexName = "MyPlaceIndex" // HERE GOES THE NAME OF YOUR PLACE INDEX
-const trackerName = "Foobartracker" // HERE GOES THE NAME OF  YOUR TRACKER
-const deviceID = "ExampleDevice-4" // HERE IT GOES THE NAME OF YOUR DEVICE
 
 Amplify.configure(awsconfig);
 
@@ -92,24 +88,6 @@ function Search(props){
   )
 };
 
-function Track(props){
-  
-  const handleClick = (event) => {
-    event.preventDefault();
-    props.trackDevice()
-  }
-
-  return (
-    <div className="container">
-      <div className="input-group">
-        <div className="input-group-append">
-          <button onClick={ handleClick } className="btn btn-primary" type="submit">Track</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 const App = () => {
 
   const [credentials, setCredentials] = useState(null);
@@ -126,8 +104,6 @@ const App = () => {
     longitude: -123.1187,
     latitude: 49.2819,
   });
-
-  const [devPosMarkers, setDevPosMarkers] = useState([]); 
 
   useEffect(() => {
     const fetchCredentials = async () => {
@@ -147,10 +123,6 @@ const App = () => {
 
     createClient();  
   }, []);
-
-  useInterval(() => {
-    getDevicePosition();
-  }, 30000);
 
   const searchPlace = (place) => {
 
@@ -178,58 +150,12 @@ const App = () => {
     });
   }
 
-  const getDevicePosition = () => {
-    setDevPosMarkers([]);
-
-    var params = {
-      DeviceId: deviceID,
-      TrackerName: trackerName,
-      StartTimeInclusive:"2020-11-02T19:05:07.327Z" ,
-      EndTimeExclusive: new Date()
-    };
-
-    client.getDevicePositionHistory(params, (err, data) => {
-      if (err) console.log(err, err.stack); 
-      if (data) { 
-        console.log(data)
-        const tempPosMarkers =  data.DevicePositions.map( function (devPos, index) {
-
-          return {
-            index: index,
-            long: devPos.Position[0],
-            lat: devPos.Position[1]
-          } 
-        });
-
-        setDevPosMarkers(tempPosMarkers);
-
-        const pos = tempPosMarkers.length -1;
-        
-        setViewport({
-          longitude: tempPosMarkers[pos].long,
-          latitude: tempPosMarkers[pos].lat, 
-          zoom: 5});
-      }
-    });
-  }
-
-  const trackerMarkers = React.useMemo(() => devPosMarkers.map(
-    pos => (
-      <Marker key={pos.index} longitude={pos.long} latitude={pos.lat} >
-        <Pin text={pos.index+1} size={20}/>
-      </Marker>
-    )), [devPosMarkers]);
-
   return (
     <AmplifyAuthenticator>
     <div className="App">
       <Header/>
       <div>
         <Search searchPlace = {searchPlace} /> 
-      </div>
-      <br/>
-      <div>
-        <Track trackDevice = {getDevicePosition}/>
       </div>
       <br/>
       <div>
@@ -250,8 +176,6 @@ const App = () => {
             > 
             <Pin size={20}/>
             </Marker>
-
-            {trackerMarkers}
 
             <div style={{ position: "absolute", left: 20, top: 20 }}>
               <NavigationControl showCompass={false} />
