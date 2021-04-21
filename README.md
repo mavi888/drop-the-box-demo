@@ -28,6 +28,7 @@ https://docs.amplify.aws/start/getting-started/installation/q/integration/react
 
 ```
 npm install bootstrap
+npm install @aws-amplify/ui-react
 ```
 
 4. Initialize the react app.
